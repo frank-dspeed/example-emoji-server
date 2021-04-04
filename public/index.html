@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="/socket.io/socket.io.js"></script>
+        <script type="module">
+        import '/socket.io/socket.io.js'
+        const socket = io(`${window.location.origin}`);
+        socket.on('welcome', (x,y)=>console.log(x()))
+        const getEmojis = new Promise((res,rej) => 
+            socket.emit('get:emojis', {}, (err,message)=>err ? rej(err) : res(message)));
+        
+        const emojiList = class emojiList extends HTMLElement {
+            connectedCallback() {
+                getEmojis.then(emojis=>{
+                    window.model = Object.keys(emojis.model)
+                    
+                    const cssStyle = `button {
+                        font-size: 40px;
+                    }
+                    li { display: inline-block; }
+                    `
+                    
+                    const emojiToString = emoji => String.fromCodePoint(`0x${emoji}`);
+                    this.innerHTML = `
+                    <style>${cssStyle}</style>
+                    <ul>${Object.keys(emojis.model).map(emoji=>`<li><button id="${emoji}">${emojiToString(emoji)} - ${emojis.model[emoji]}</button></li>`).join('')}</ul>
+                    `
+                    
+                    const updateEmoji = id => {
+                        const el = document.getElementById(id);
+                        const split = el.innerText.split(' - ')
+                        el.innerText = `${split[0]} - ${parseInt(split[1]) + 1}` 
+                    }
+                    
+                    socket.on('emoji:update', updateEmoji)
+                    
+                    const buttonClickHandler = ({ target }) =>{
+                        const { tagName, id } = target;
+                        if (tagName === 'BUTTON') {
+                            console.log(tagName)
+                            socket.emit('update:emoji', id, (err)=>{
+                                console.log('cb')
+                                if (err) {
+                                    console.error(err)
+                                    return
+                                }
+                                // optimistic update Emoji
+                                updateEmoji(id)
+                            })
+                        }
+                        
+                    }
+
+                    this.querySelector('ul').addEventListener('click', buttonClickHandler);
+                })
+            }
+        }
+        customElements.define('emoji-list',emojiList)  
+        </script>
+    </head>
+    <body>
+        <emoji-list></emoji-list>
+    </body>
+</html>

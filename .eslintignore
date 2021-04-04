@@ -1,0 +1,4 @@
+test/benchmark/node_modules/**/*.js
+test/memory_benchmark/node_modules/**/*.js
+node_modules
+run.js
