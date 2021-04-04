@@ -7,6 +7,16 @@ as data structure and we can use the index of the key value to send smaller mess
 Please Remember that this is a PoC it got created only for training and demo lessons it is nothing
 that you should use in Production without Modification.
 
+## Note About SSL and Localhost Testing 
+if you got no cert infra or do not want to use it you can 
+surf to:
+``` 
+chrome://flags/#allow-insecure-localhost
+``` 
+
+and enable it that allows you to use websockets and everything else via localhost as if there would be a https connection
+
+
 ## Using node Below 15.10?
 node --harmony-top-level-await server.js
 
